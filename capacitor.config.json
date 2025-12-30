@@ -1,0 +1,6 @@
+{
+  "appId": "com.homecoming.app",
+  "appName": "Homecoming",
+  "webDir": "build",
+  "bundledWebRuntime": false
+}

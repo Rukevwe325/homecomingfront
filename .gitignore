@@ -1,0 +1,13 @@
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+android/app/build/
+
+# Environment files
+.env
+
+# Misc
+.DS_Store
