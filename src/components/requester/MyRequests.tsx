@@ -70,7 +70,7 @@ export function MyRequests({ user, onNavigate }: MyRequestsProps) {
           <h3 className="text-gray-900 mb-2 font-bold">No requests yet</h3>
           <p className="text-gray-600 mb-6">Post your first request to start finding carriers</p>
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => onNavigate?.('post-request')}
             className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-bold"
           >
             <Package className="w-5 h-5" />
