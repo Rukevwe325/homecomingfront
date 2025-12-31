@@ -84,7 +84,7 @@ export function MyTrips({ user, onNavigate }: MyTripsProps) {
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No trips yet</h3>
           <p className="text-gray-600 mb-6">Post your first trip to start connecting with requesters</p>
           <button
-            onClick={() => window.location.hash = '/post-trip'}
+            onClick={() => onNavigate?.('post-trip')}
             className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             <Plane className="w-5 h-5" />
