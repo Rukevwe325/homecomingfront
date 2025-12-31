@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { User } from '../../App';
-import { Package, MapPin, Calendar, Weight, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, MapPin, Calendar, Weight, AlertCircle, Loader2, ChevronLeft, ChevronRight, CheckCircle, X } from 'lucide-react';
 import api from '../../api/axiosInstance';
 
 interface MyRequestsProps {
   user: User;
-  onNavigate?: (view: string) => void;
+  onNavigate?: (view: string, params?: any) => void;
+  flashMessage?: string;
+  onClearFlash?: () => void;
 }
 
-export function MyRequests({ user, onNavigate }: MyRequestsProps) {
+export function MyRequests({ user, onNavigate, flashMessage, onClearFlash }: MyRequestsProps) {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,10 +59,25 @@ export function MyRequests({ user, onNavigate }: MyRequestsProps) {
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-0">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-gray-900 mb-2">My Requests</h1>
         <p className="text-gray-600">View and manage your shipment requests</p>
       </div>
+
+      {flashMessage && (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span className="text-green-800 font-medium">{flashMessage}</span>
+          </div>
+          <button
+            onClick={onClearFlash}
+            className="text-green-600 hover:text-green-800 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
 
       {requests.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
@@ -147,10 +164,7 @@ export function MyRequests({ user, onNavigate }: MyRequestsProps) {
 
                     <button
                       onClick={() => {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('itemRequestId', request.id.toString());
-                        window.history.pushState({}, '', url.toString());
-                        onNavigate?.('matches');
+                        onNavigate?.('matches', { itemRequestId: request.id.toString() });
                       }}
                       className={`mt-4 w-full py-2 rounded-lg text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors ${request.potentialMatches > 0
                         ? 'bg-teal-600 text-white hover:bg-teal-700'

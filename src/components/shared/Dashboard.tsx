@@ -18,26 +18,58 @@ interface DashboardProps {
 
 export function Dashboard({ user, onLogout }: DashboardProps) {
   const [currentView, setCurrentView] = useState('home');
+  const [viewParams, setViewParams] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [flashMessage, setFlashMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const handleShowFlash = (message: string, type: 'success' | 'error' = 'success') => {
+    setFlashMessage({ message, type });
+    // Auto-clear after 5 seconds
+    setTimeout(() => setFlashMessage(null), 5000);
+  };
+
+  const handleNavigate = (view: string, params?: any) => {
+    setCurrentView(view);
+    if (params) {
+      setViewParams(params);
+    } else {
+      // Clear params if navigating without any (unless we want persistence, but usually clearing is safer to avoid stale state)
+      setViewParams(null);
+    }
+  };
 
   const renderView = () => {
     switch (currentView) {
       case 'home':
-        return <Home user={user} onNavigate={setCurrentView} />;
+        return <Home user={user} onNavigate={handleNavigate} />;
       case 'post-trip':
-        return <PostTrip user={user} onNavigate={setCurrentView} />;
+        return <PostTrip user={user} onNavigate={handleNavigate} onShowFlash={handleShowFlash} />;
       case 'my-trips':
-        return <MyTrips user={user} onNavigate={setCurrentView} />;
+        return (
+          <MyTrips
+            user={user}
+            onNavigate={handleNavigate}
+            flashMessage={flashMessage?.message}
+            onClearFlash={() => setFlashMessage(null)}
+          />
+        );
       case 'post-request':
-        return <PostRequest user={user} onNavigate={setCurrentView} />;
+        return <PostRequest user={user} onNavigate={handleNavigate} onShowFlash={handleShowFlash} />;
       case 'my-requests':
-        return <MyRequests user={user} onNavigate={setCurrentView} />;
+        return (
+          <MyRequests
+            user={user}
+            onNavigate={handleNavigate}
+            flashMessage={flashMessage?.message}
+            onClearFlash={() => setFlashMessage(null)}
+          />
+        );
       case 'matches':
-        return <MatchesList user={user} />;
+        return <MatchesList user={user} initialFilters={viewParams} />;
       case 'settings':
         return <Settings user={user} />;
       default:
-        return <Home user={user} onNavigate={setCurrentView} />;
+        return <Home user={user} onNavigate={handleNavigate} />;
     }
   };
 

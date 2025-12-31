@@ -1,84 +1,83 @@
 import { useState } from 'react';
 import { User } from '../../App';
-import { Package, MapPin, Calendar, Weight, FileText } from 'lucide-react';
+import { Package, MapPin, Calendar, FileText, DollarSign, CheckCircle } from 'lucide-react';
 import { LocationPicker } from '../shared/LocationPicker';
 import api from '../../api/axiosInstance';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog";
 
 interface PostRequestProps {
   user: User;
   onNavigate?: (view: string) => void;
+  onShowFlash?: (message: string, type?: 'success' | 'error') => void;
 }
 
-export function PostRequest({ user, onNavigate }: PostRequestProps) {
+export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps) {
   const [formData, setFormData] = useState({
-    itemName: '',
-    quantity: '',
-    weight: '',
     originCountry: '',
     originState: '',
     originCity: '',
     destCountry: '',
     destState: '',
     destCity: '',
-    deadline: '',
-    notes: '',
+    deliveryDate: '',
+    itemName: '',
+    itemSize: 'medium',
+    itemWeight: '',
+    price: '',
+    description: '',
   });
 
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Map the form data to your backend endpoint structure
     const requestPayload = {
-      itemName: formData.itemName,
-      quantity: parseInt(formData.quantity),
-      weightKg: parseFloat(formData.weight),
       fromCountry: formData.originCountry,
       fromState: formData.originState,
       fromCity: formData.originCity,
       toCountry: formData.destCountry,
       toState: formData.destState,
       toCity: formData.destCity,
-      desiredDeliveryDate: formData.deadline,
-      notes: formData.notes,
-      status: "active"
+      deliveryNeededBy: formData.deliveryDate,
+      itemName: formData.itemName,
+      itemSize: formData.itemSize,
+      itemWeight: parseFloat(formData.itemWeight),
+      rewardAmount: parseFloat(formData.price),
+      description: formData.description,
+      status: 'pending',
     };
 
     try {
-      // API call to your backend
-      await api.post('/item-requests', requestPayload);
+      await api.post('/requests', requestPayload);
 
-      setShowSuccessDialog(true);
-      // Reset form fields
+      // Trigger flash message and redirect
+      if (onShowFlash) onShowFlash("Request posted successfully!", "success");
+      if (onNavigate) onNavigate('my-requests');
+
+      // Clear form
       setFormData({
-        itemName: '',
-        quantity: '',
-        weight: '',
         originCountry: '',
         originState: '',
         originCity: '',
         destCountry: '',
         destState: '',
         destCity: '',
-        deadline: '',
-        notes: '',
+        deliveryDate: '',
+        itemName: '',
+        itemSize: 'medium',
+        itemWeight: '',
+        price: '',
+        description: '',
       });
 
     } catch (err) {
-      console.error("Error posting item request:", err);
-      alert("Failed to post request. Please check your connection and try again.");
+      console.error("Error posting request:", err);
+      if (onShowFlash) {
+        onShowFlash("Failed to submit request. Please try again.", "error");
+      } else {
+        alert("Failed to submit request. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -86,41 +85,13 @@ export function PostRequest({ user, onNavigate }: PostRequestProps) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-gray-900 mb-2">Post a Request</h1>
-        <p className="text-gray-600">Request an item to be shipped internationally</p>
+        <h1 className="text-gray-900 mb-2">Request an Item</h1>
+        <p className="text-gray-600">Connect with travelers to get items delivered to you</p>
       </div>
 
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Request Posted Successfully!</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your item request has been posted. Carriers can now view and match with your request.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                setShowSuccessDialog(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="bg-gray-100 text-gray-900 hover:bg-gray-200"
-            >
-              Post Another
-            </AlertDialogAction>
-            <AlertDialogAction
-              onClick={() => onNavigate?.('matches')}
-              className="bg-teal-600 text-white hover:bg-teal-700"
-            >
-              Check Matches
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
-      {/* Form */}
+
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
         {/* Item Details */}
         <div className="mb-8">
@@ -128,11 +99,9 @@ export function PostRequest({ user, onNavigate }: PostRequestProps) {
             <Package className="w-5 h-5 text-blue-600" />
             <h2 className="text-gray-900 font-semibold">Item Details</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label htmlFor="itemName" className="block text-gray-700 mb-2 text-sm">
-                Item Name *
-              </label>
+              <label htmlFor="itemName" className="block text-gray-700 mb-2 text-sm">Item Name *</label>
               <input
                 id="itemName"
                 type="text"
@@ -140,41 +109,34 @@ export function PostRequest({ user, onNavigate }: PostRequestProps) {
                 value={formData.itemName}
                 onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Books, Electronics, Clothing"
+                placeholder="e.g., iPhone 15 Pro, Documents, etc."
               />
             </div>
             <div>
-              <label htmlFor="quantity" className="block text-gray-700 mb-2 text-sm">
-                Quantity *
-              </label>
-              <input
-                id="quantity"
-                type="number"
-                required
-                min="1"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="1"
-              />
+              <label htmlFor="itemSize" className="block text-gray-700 mb-2 text-sm">Size Category *</label>
+              <select
+                id="itemSize"
+                value={formData.itemSize}
+                onChange={(e) => setFormData({ ...formData, itemSize: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="small">Small (Fits in backpack)</option>
+                <option value="medium">Medium (Fits in suitcase)</option>
+                <option value="large">Large (Requires check-in)</option>
+              </select>
             </div>
-          </div>
-          <div className="mt-4">
-            <label htmlFor="weight" className="block text-gray-700 mb-2 text-sm">
-              Total Weight (kg) *
-            </label>
-            <div className="flex items-center gap-2">
-              <Weight className="w-5 h-5 text-gray-400" />
+            <div>
+              <label htmlFor="itemWeight" className="block text-gray-700 mb-2 text-sm">Est. Weight (kg) *</label>
               <input
-                id="weight"
+                id="itemWeight"
                 type="number"
                 required
                 min="0.1"
                 step="0.1"
-                value={formData.weight}
-                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 5"
+                value={formData.itemWeight}
+                onChange={(e) => setFormData({ ...formData, itemWeight: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., 2.5"
               />
             </div>
           </div>
@@ -184,7 +146,7 @@ export function PostRequest({ user, onNavigate }: PostRequestProps) {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <MapPin className="w-5 h-5 text-blue-600" />
-            <h2 className="text-gray-900 font-semibold">Origin Location</h2>
+            <h2 className="text-gray-900 font-semibold">Item Origin (Purchase Location)</h2>
           </div>
           <LocationPicker
             country={formData.originCountry}
@@ -200,7 +162,7 @@ export function PostRequest({ user, onNavigate }: PostRequestProps) {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <MapPin className="w-5 h-5 text-teal-600" />
-            <h2 className="text-gray-900 font-semibold">Destination Location</h2>
+            <h2 className="text-gray-900 font-semibold">Destination (Delivery Location)</h2>
           </div>
           <LocationPicker
             country={formData.destCountry}
@@ -212,43 +174,58 @@ export function PostRequest({ user, onNavigate }: PostRequestProps) {
           />
         </div>
 
-        {/* Deadline */}
+        {/* Delivery Details */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-blue-600" />
-            <h2 className="text-gray-900 font-semibold">Delivery Deadline</h2>
+            <h2 className="text-gray-900 font-semibold">Delivery Details</h2>
           </div>
-          <div>
-            <label htmlFor="deadline" className="block text-gray-700 mb-2 text-sm">
-              Desired Delivery Date *
-            </label>
-            <input
-              id="deadline"
-              type="date"
-              required
-              value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="deliveryDate" className="block text-gray-700 mb-2 text-sm">Needed By *</label>
+              <input
+                id="deliveryDate"
+                type="date"
+                required
+                value={formData.deliveryDate}
+                onChange={(e) => setFormData({ ...formData, deliveryDate: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="price" className="block text-gray-700 mb-2 text-sm">Reward Amount ($) *</label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  id="price"
+                  type="number"
+                  required
+                  min="5"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., 50"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Notes */}
+        {/* Description */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="w-5 h-5 text-blue-600" />
-            <h2 className="text-gray-900 font-semibold">Additional Notes</h2>
+            <h2 className="text-gray-900 font-semibold">Additional Details</h2>
           </div>
           <textarea
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={4}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Any additional details about the item or special requirements..."
+            placeholder="Describe the item in detail, specific purchase instructions, etc."
           />
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}

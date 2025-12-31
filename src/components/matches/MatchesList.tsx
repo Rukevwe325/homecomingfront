@@ -6,9 +6,13 @@ import api from '../../api/axiosInstance';
 
 interface MatchesListProps {
   user: User;
+  initialFilters?: {
+    tripId?: string;
+    itemRequestId?: string;
+  };
 }
 
-export function MatchesList({ user }: MatchesListProps) {
+export function MatchesList({ user, initialFilters }: MatchesListProps) {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -26,20 +30,29 @@ export function MatchesList({ user }: MatchesListProps) {
 
   // Initial Load & URL Params Check
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tripId = params.get('tripId');
-    const itemRequestId = params.get('itemRequestId');
-
     fetchUserOptions();
 
-    if (tripId) {
+    // Priority: initialFilters prop > URL params > default
+    if (initialFilters?.tripId) {
       setFilterType('trip');
-      setSelectedFilterId(tripId);
-    } else if (itemRequestId) {
+      setSelectedFilterId(initialFilters.tripId);
+    } else if (initialFilters?.itemRequestId) {
       setFilterType('request');
-      setSelectedFilterId(itemRequestId);
+      setSelectedFilterId(initialFilters.itemRequestId);
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      const tripId = params.get('tripId');
+      const itemRequestId = params.get('itemRequestId');
+
+      if (tripId) {
+        setFilterType('trip');
+        setSelectedFilterId(tripId);
+      } else if (itemRequestId) {
+        setFilterType('request');
+        setSelectedFilterId(itemRequestId);
+      }
     }
-  }, []);
+  }, [initialFilters]); // Re-run if initialFilters changes
 
   useEffect(() => {
     loadMatches();

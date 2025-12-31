@@ -64,9 +64,9 @@ export function Home({ user, onNavigate }: HomeProps) {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-gray-900 mb-2">Welcome back, {user.fullName}!</h1>
+        <h1 className="text-gray-900 mb-2">Welcome back, {user.firstName} {user.lastName}!</h1>
         <p className="text-gray-600">
-          Post trips or requests, manage your matches, and connect with the Homecoming community.
+          Post trips or requests, manage your matches, and connect with the Dconnect community.
         </p>
       </div>
 
@@ -157,15 +157,7 @@ export function Home({ user, onNavigate }: HomeProps) {
         </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="text-blue-900 mb-2">How Homecoming Works</h3>
-        <p className="text-blue-800">
-          Post trips when you're traveling with available luggage space, or post requests when you need items shipped.
-          Our system automatically matches trips and requests on the same route. Review matches, connect with other users,
-          and arrange the delivery details!
-        </p>
-      </div>
+
     </div>
   );
 }

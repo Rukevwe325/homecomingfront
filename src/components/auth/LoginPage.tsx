@@ -60,7 +60,7 @@ export function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4">
             <Plane className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-gray-900 mb-2 font-bold text-2xl">Welcome to Homecoming</h1>
+          <h1 className="text-gray-900 mb-2 font-bold text-2xl">Welcome to Dconnect</h1>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8">

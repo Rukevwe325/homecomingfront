@@ -11,8 +11,8 @@ interface SidebarProps {
 
 export function Sidebar({ user, currentView, onNavigate, onLogout, pendingMatchesCount }: SidebarProps) {
   // Defensive check: if firstName is missing, use email or "User"
-  const displayName = user?.firstName 
-    ? `${user.firstName} ${user.lastName || ''}` 
+  const displayName = user?.firstName
+    ? `${user.firstName} ${user.lastName || ''}`
     : user?.email || 'User';
 
   const avatarInitial = (user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U').toUpperCase();
@@ -36,7 +36,7 @@ export function Sidebar({ user, currentView, onNavigate, onLogout, pendingMatche
             <Plane className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-gray-900 font-bold">Homecoming</div>
+            <div className="text-gray-900 font-bold">Dconnect</div>
             <div className="text-gray-600 text-xs capitalize">{user?.role || 'Member'}</div>
           </div>
         </div>
@@ -65,11 +65,10 @@ export function Sidebar({ user, currentView, onNavigate, onLogout, pendingMatche
               <li key={item.id}>
                 <button
                   onClick={() => onNavigate(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                    ? 'bg-blue-50 text-blue-600 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>

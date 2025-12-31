@@ -195,9 +195,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         {/* Route Section */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Plane className="w-6 h-6 text-blue-600" />
-            </div>
+
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap mb-2">
                 <div className="text-lg font-bold text-gray-900">

@@ -1,24 +1,16 @@
 import { useState } from 'react';
 import { User } from '../../App';
-import { Plane, MapPin, Calendar, Weight, FileText } from 'lucide-react';
+import { Plane, MapPin, Calendar, Weight, FileText, CheckCircle } from 'lucide-react';
 import { LocationPicker } from '../shared/LocationPicker';
 import api from '../../api/axiosInstance';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog";
 
 interface PostTripProps {
   user: User;
   onNavigate?: (view: string) => void;
+  onShowFlash?: (message: string, type?: 'success' | 'error') => void;
 }
 
-export function PostTrip({ user, onNavigate }: PostTripProps) {
+export function PostTrip({ user, onNavigate, onShowFlash }: PostTripProps) {
   const [formData, setFormData] = useState({
     originCountry: '',
     originState: '',
@@ -32,7 +24,6 @@ export function PostTrip({ user, onNavigate }: PostTripProps) {
     notes: '',
   });
 
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,8 +46,11 @@ export function PostTrip({ user, onNavigate }: PostTripProps) {
     try {
       await api.post('/trips', tripPayload);
 
-      setShowSuccessDialog(true);
+      // Trigger flash message and redirect
+      if (onShowFlash) onShowFlash("Trip posted successfully!", "success");
+      if (onNavigate) onNavigate('my-trips');
 
+      // Clear form (though redirecting makes this less critical, good practice)
       setFormData({
         originCountry: '',
         originState: '',
@@ -72,7 +66,11 @@ export function PostTrip({ user, onNavigate }: PostTripProps) {
 
     } catch (err) {
       console.error("Error posting trip:", err);
-      alert("Failed to post trip. Please check your connection and try again.");
+      if (onShowFlash) {
+        onShowFlash("Failed to post trip. Please try again.", "error");
+      } else {
+        alert("Failed to post trip. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -85,33 +83,7 @@ export function PostTrip({ user, onNavigate }: PostTripProps) {
         <p className="text-gray-600">Share your travel plans and help deliver items along your route</p>
       </div>
 
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Trip Posted Successfully!</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your trip has been posted. You can now view matches or post another trip.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                setShowSuccessDialog(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="bg-gray-100 text-gray-900 hover:bg-gray-200"
-            >
-              Post Another
-            </AlertDialogAction>
-            <AlertDialogAction
-              onClick={() => onNavigate?.('matches')}
-              className="bg-blue-600 text-white hover:bg-blue-700"
-            >
-              View Matches
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
         {/* Origin Location */}

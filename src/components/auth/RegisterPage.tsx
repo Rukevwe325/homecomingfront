@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, User, Phone, Plane, Package, Luggage } from 'lucide-react';
+import { Mail, Lock, User, Phone, Plane } from 'lucide-react';
 import { UserRole } from '../../App';
 import api from '../../api/axiosInstance'; // Make sure this path points to your axios file
 
@@ -17,7 +17,7 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('carrier');
-  
+
   // New UI states
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,10 +61,10 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
       const response = await api.post('/users/register', payload);
 
       console.log('Success:', response.data);
-      
+
       // Optional: Call the old onRegister prop if you still need it for local state
       if (onRegister) onRegister(fullName, email, phone, password, role);
-      
+
       // 4. Success Action
       alert('Registration successful! Please log in.');
       onSwitchToLogin();
@@ -88,7 +88,7 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4">
             <Plane className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-gray-900 mb-2">Join Homecoming</h1>
+          <h1 className="text-gray-900 mb-2">Join Dconnect</h1>
           <p className="text-gray-600">Start carrying or shipping items worldwide</p>
         </div>
 
@@ -103,47 +103,7 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
               </div>
             )}
 
-            {/* Role Selection */}
-            <div>
-              <label className="block text-gray-700 mb-3">I want to:</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setRole('carrier')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    role === 'carrier' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${role === 'carrier' ? 'bg-blue-600' : 'bg-gray-200'}`}>
-                      <Luggage className={`w-6 h-6 ${role === 'carrier' ? 'text-white' : 'text-gray-600'}`} />
-                    </div>
-                    <div className="text-left">
-                      <div className="text-gray-900 font-medium">Carry Items</div>
-                      <div className="text-xs text-gray-600">Traveler with space</div>
-                    </div>
-                  </div>
-                </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRole('requester')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    role === 'requester' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${role === 'requester' ? 'bg-blue-600' : 'bg-gray-200'}`}>
-                      <Package className={`w-6 h-6 ${role === 'requester' ? 'text-white' : 'text-gray-600'}`} />
-                    </div>
-                    <div className="text-left">
-                      <div className="text-gray-900 font-medium">Send Items</div>
-                      <div className="text-xs text-gray-600">International shipping</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -222,9 +182,8 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full text-white py-3 px-4 rounded-lg transition-colors font-medium ${
-                isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+              className={`w-full text-white py-3 px-4 rounded-lg transition-colors font-medium ${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
             >
               {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>

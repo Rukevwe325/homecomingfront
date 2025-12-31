@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import api from '../../api/axiosInstance';
 import { User } from '../../App';
 import { Settings as SettingsIcon, User as UserIcon, Mail, Phone, Shield } from 'lucide-react';
 
@@ -6,6 +8,24 @@ interface SettingsProps {
 }
 
 export function Settings({ user }: SettingsProps) {
+  const [profile, setProfile] = useState<any>(user);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/users/profile');
+        setProfile(response.data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
@@ -28,7 +48,9 @@ export function Settings({ user }: SettingsProps) {
             <label className="block text-gray-700 mb-2">Full Name</label>
             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
               <UserIcon className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-900">{user.fullName}</span>
+              <span className="text-gray-900">
+                {profile.firstName} {profile.lastName}
+              </span>
             </div>
           </div>
 
@@ -36,7 +58,7 @@ export function Settings({ user }: SettingsProps) {
             <label className="block text-gray-700 mb-2">Email</label>
             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
               <Mail className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-900">{user.email}</span>
+              <span className="text-gray-900">{profile.email}</span>
             </div>
           </div>
 
@@ -44,7 +66,7 @@ export function Settings({ user }: SettingsProps) {
             <label className="block text-gray-700 mb-2">Phone Number</label>
             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
               <Phone className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-900">{user.phone}</span>
+              <span className="text-gray-900">{profile.phone || 'Not provided'}</span>
             </div>
           </div>
 
@@ -52,7 +74,7 @@ export function Settings({ user }: SettingsProps) {
             <label className="block text-gray-700 mb-2">Account Type</label>
             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
               <Shield className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-900 capitalize">{user.role}</span>
+              <span className="text-gray-900 capitalize">{profile.role}</span>
             </div>
           </div>
         </div>

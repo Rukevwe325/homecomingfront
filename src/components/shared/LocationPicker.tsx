@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Country, State, City } from 'country-state-city';
 
 interface LocationPickerProps {
@@ -17,18 +18,23 @@ export function LocationPicker({
   onStateChange,
   onCityChange,
 }: LocationPickerProps) {
-  // Get all countries
-  const countries = Country.getAllCountries();
+  // Get all countries - memoized
+  const countries = useMemo(() => Country.getAllCountries(), []);
 
-  // Get states for selected country
-  const selectedCountry = countries.find(c => c.isoCode === country);
-  const states = selectedCountry ? State.getStatesOfCountry(selectedCountry.isoCode) : [];
+  // Get states for selected country - memoized
+  const states = useMemo(() => {
+    const selectedCountry = countries.find(c => c.isoCode === country);
+    return selectedCountry ? State.getStatesOfCountry(selectedCountry.isoCode) : [];
+  }, [country, countries]);
 
-  // Get cities for selected state
-  const selectedState = states.find(s => s.isoCode === state);
-  const cities = selectedState && selectedCountry
-    ? City.getCitiesOfState(selectedCountry.isoCode, selectedState.isoCode)
-    : [];
+  // Get cities for selected state - memoized
+  const cities = useMemo(() => {
+    const selectedCountry = countries.find(c => c.isoCode === country);
+    const selectedState = states.find(s => s.isoCode === state);
+    return selectedState && selectedCountry
+      ? City.getCitiesOfState(selectedCountry.isoCode, selectedState.isoCode)
+      : [];
+  }, [country, state, countries, states]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
