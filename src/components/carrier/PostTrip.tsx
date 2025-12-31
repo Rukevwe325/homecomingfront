@@ -1,14 +1,24 @@
 import { useState } from 'react';
 import { User } from '../../App';
-import { Plane, MapPin, Calendar, Weight, FileText, CheckCircle } from 'lucide-react';
+import { Plane, MapPin, Calendar, Weight, FileText } from 'lucide-react';
 import { LocationPicker } from '../shared/LocationPicker';
-import api from '../../api/axiosInstance'; 
+import api from '../../api/axiosInstance';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 interface PostTripProps {
   user: User;
+  onNavigate?: (view: string) => void;
 }
 
-export function PostTrip({ user }: PostTripProps) {
+export function PostTrip({ user, onNavigate }: PostTripProps) {
   const [formData, setFormData] = useState({
     originCountry: '',
     originState: '',
@@ -22,7 +32,7 @@ export function PostTrip({ user }: PostTripProps) {
     notes: '',
   });
 
-  const [success, setSuccess] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +55,8 @@ export function PostTrip({ user }: PostTripProps) {
     try {
       await api.post('/trips', tripPayload);
 
-      setSuccess(true);
+      setShowSuccessDialog(true);
+
       setFormData({
         originCountry: '',
         originState: '',
@@ -59,8 +70,6 @@ export function PostTrip({ user }: PostTripProps) {
         notes: '',
       });
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       console.error("Error posting trip:", err);
       alert("Failed to post trip. Please check your connection and try again.");
@@ -76,12 +85,33 @@ export function PostTrip({ user }: PostTripProps) {
         <p className="text-gray-600">Share your travel plans and help deliver items along your route</p>
       </div>
 
-      {success && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-green-600" />
-          <span className="text-green-800">Trip posted successfully! We'll notify you of any matches.</span>
-        </div>
-      )}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Trip Posted Successfully!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your trip has been posted. You can now view matches or post another trip.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccessDialog(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="bg-gray-100 text-gray-900 hover:bg-gray-200"
+            >
+              Post Another
+            </AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => onNavigate?.('matches')}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              View Matches
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
         {/* Origin Location */}

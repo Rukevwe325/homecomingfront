@@ -25,11 +25,11 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       case 'home':
         return <Home user={user} onNavigate={setCurrentView} />;
       case 'post-trip':
-        return <PostTrip user={user} />;
+        return <PostTrip user={user} onNavigate={setCurrentView} />;
       case 'my-trips':
         return <MyTrips user={user} onNavigate={setCurrentView} />;
       case 'post-request':
-        return <PostRequest user={user} />;
+        return <PostRequest user={user} onNavigate={setCurrentView} />;
       case 'my-requests':
         return <MyRequests user={user} onNavigate={setCurrentView} />;
       case 'matches':
