@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, User, Phone, Plane } from 'lucide-react';
+import { Mail, Lock, User, Phone, Plane, Eye, EyeOff } from 'lucide-react';
 import { UserRole } from '../../App';
 import api from '../../api/axiosInstance'; // Make sure this path points to your axios file
 
@@ -17,6 +17,8 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('carrier');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // New UI states
   const [error, setError] = useState('');
@@ -89,7 +91,7 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
             <Plane className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-gray-900 mb-2">Join Dconnect</h1>
-          <p className="text-gray-600">Start carrying or shipping items worldwide</p>
+          <p className="text-gray-600">Connecting People and Parcels</p>
         </div>
 
         {/* Register Card */}
@@ -152,29 +154,55 @@ export function RegisterPage({ onRegister, onSwitchToLogin }: RegisterPageProps)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-700 mb-2">Password</label>
-                <div className="relative">
+                <div className="relative w-full">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full pl-11 pr-11 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="••••••••"
                   />
+                  {password.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10 bg-transparent"
+                    >
+                      {showPassword ? (
+                        <Eye className="w-5 h-5" />
+                      ) : (
+                        <EyeOff className="w-5 h-5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 
               <div>
                 <label className="block text-gray-700 mb-2">Confirm Password</label>
-                <div className="relative">
+                <div className="relative w-full">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full pl-11 pr-11 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="••••••••"
                   />
+                  {confirmPassword.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10 bg-transparent"
+                    >
+                      {showConfirmPassword ? (
+                        <Eye className="w-5 h-5" />
+                      ) : (
+                        <EyeOff className="w-5 h-5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

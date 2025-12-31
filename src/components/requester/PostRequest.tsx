@@ -20,10 +20,8 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
     destCity: '',
     deliveryDate: '',
     itemName: '',
-    itemSize: 'medium',
     itemWeight: '',
-    price: '',
-    description: '',
+    notes: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,23 +31,22 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
     setLoading(true);
 
     const requestPayload = {
+      itemName: formData.itemName,
+      quantity: 1,
+      weightKg: parseFloat(formData.itemWeight),
       fromCountry: formData.originCountry,
       fromState: formData.originState,
       fromCity: formData.originCity,
       toCountry: formData.destCountry,
       toState: formData.destState,
       toCity: formData.destCity,
-      deliveryNeededBy: formData.deliveryDate,
-      itemName: formData.itemName,
-      itemSize: formData.itemSize,
-      itemWeight: parseFloat(formData.itemWeight),
-      rewardAmount: parseFloat(formData.price),
-      description: formData.description,
-      status: 'pending',
+      desiredDeliveryDate: formData.deliveryDate,
+      notes: formData.notes,
+      status: 'active',
     };
 
     try {
-      await api.post('/requests', requestPayload);
+      await api.post('/item-requests', requestPayload);
 
       // Trigger flash message and redirect
       if (onShowFlash) onShowFlash("Request posted successfully!", "success");
@@ -65,10 +62,8 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
         destCity: '',
         deliveryDate: '',
         itemName: '',
-        itemSize: 'medium',
         itemWeight: '',
-        price: '',
-        description: '',
+        notes: '',
       });
 
     } catch (err) {
@@ -111,19 +106,6 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., iPhone 15 Pro, Documents, etc."
               />
-            </div>
-            <div>
-              <label htmlFor="itemSize" className="block text-gray-700 mb-2 text-sm">Size Category *</label>
-              <select
-                id="itemSize"
-                value={formData.itemSize}
-                onChange={(e) => setFormData({ ...formData, itemSize: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                <option value="small">Small (Fits in backpack)</option>
-                <option value="medium">Medium (Fits in suitcase)</option>
-                <option value="large">Large (Requires check-in)</option>
-              </select>
             </div>
             <div>
               <label htmlFor="itemWeight" className="block text-gray-700 mb-2 text-sm">Est. Weight (kg) *</label>
@@ -192,22 +174,6 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div>
-              <label htmlFor="price" className="block text-gray-700 mb-2 text-sm">Reward Amount ($) *</label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="price"
-                  type="number"
-                  required
-                  min="5"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 50"
-                />
-              </div>
-            </div>
           </div>
         </div>
 
@@ -218,8 +184,8 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
             <h2 className="text-gray-900 font-semibold">Additional Details</h2>
           </div>
           <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             rows={4}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Describe the item in detail, specific purchase instructions, etc."
