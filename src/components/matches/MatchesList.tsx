@@ -223,63 +223,88 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {filteredMatches.map((match) => (
-          <div key={match.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex flex-col lg:flex-row gap-6">
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 border-r border-gray-50 pr-4">
-                <div className="space-y-1">
-                  <div className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">Trip</div>
-                  <div className="font-bold text-gray-900">{match.trip?.fromCity} → {match.trip?.toCity}</div>
-                  <div className="text-xs text-gray-500">{formatDate(match.trip?.departureDate)}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-teal-600 text-[10px] font-bold uppercase tracking-wider">Item</div>
-                  <div className="font-bold text-gray-900">{match.itemRequest?.itemName}</div>
-                  <div className="text-xs text-gray-500">{match.itemRequest?.weightKg} kg</div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 lg:w-56 justify-center">
-                <div className={`px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md ${match.status.includes('accepted') ? 'bg-green-50 text-green-700 border-green-200' :
-                  match.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                  }`}>
-                  {match.status.replace('_', ' ')}
-                </div>
-
-                <div className="flex gap-2">
-                  {shouldShowActions(match) && (
-                    <>
-                      <button
-                        disabled={updatingId === match.id.toString()}
-                        onClick={() => handleStatusUpdate(match.id.toString(), 'rejected')}
-                        className="flex-1 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        disabled={updatingId === match.id.toString()}
-                        onClick={() => handleStatusUpdate(match.id.toString(), 'accepted')}
-                        className="flex-[2] py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-                      >
-                        {updatingId === match.id.toString() ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        <span>Accept</span>
-                      </button>
-                    </>
-                  )}
+      {filteredMatches.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-10 h-10 text-blue-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No matches found</h3>
+          <p className="text-gray-600 mb-6">
+            {filter !== 'all'
+              ? `No matches with status "${filter}". Try changing the filter.`
+              : 'You do not have any matches yet. Matches appear when trips and requests align.'}
+          </p>
+          <button
+            onClick={() => {
+              setFilter('all');
+              setFilterType('all');
+              setSelectedFilterId('');
+              // Optionally reload or navigate
+            }}
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Clear Filters
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          {filteredMatches.map((match) => (
+            <div key={match.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 border-r border-gray-50 pr-4">
+                  <div className="space-y-1">
+                    <div className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">Trip</div>
+                    <div className="font-bold text-gray-900">{match.trip?.fromCity} → {match.trip?.toCity}</div>
+                    <div className="text-xs text-gray-500">{formatDate(match.trip?.departureDate)}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-teal-600 text-[10px] font-bold uppercase tracking-wider">Item</div>
+                    <div className="font-bold text-gray-900">{match.itemRequest?.itemName}</div>
+                    <div className="text-xs text-gray-500">{match.itemRequest?.weightKg} kg</div>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => setSelectedMatch(match)}
-                  className="text-xs font-bold text-gray-400 hover:text-gray-900 transition-colors text-center w-full"
-                >
-                  View Full Details
-                </button>
+                <div className="flex flex-col gap-3 lg:w-56 justify-center">
+                  <div className={`px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md ${match.status.includes('accepted') ? 'bg-green-50 text-green-700 border-green-200' :
+                    match.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                    }`}>
+                    {match.status.replace('_', ' ')}
+                  </div>
+
+                  <div className="flex gap-2">
+                    {shouldShowActions(match) && (
+                      <>
+                        <button
+                          disabled={updatingId === match.id.toString()}
+                          onClick={() => handleStatusUpdate(match.id.toString(), 'rejected')}
+                          className="flex-1 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          disabled={updatingId === match.id.toString()}
+                          onClick={() => handleStatusUpdate(match.id.toString(), 'accepted')}
+                          className="flex-[2] py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                        >
+                          {updatingId === match.id.toString() ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          <span>Accept</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedMatch(match)}
+                    className="text-xs font-bold text-gray-400 hover:text-gray-900 transition-colors text-center w-full"
+                  >
+                    View Full Details
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-10 mb-10">
