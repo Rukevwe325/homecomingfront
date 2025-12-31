@@ -102,14 +102,7 @@ export function Settings({ user }: SettingsProps) {
         </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="text-blue-900 mb-2">About Your Data</h3>
-        <p className="text-blue-800">
-          Your information is stored locally in your browser. For a full-featured experience with
-          real-time updates and multi-device sync, consider connecting to a database.
-        </p>
-      </div>
+
     </div>
   );
 }
