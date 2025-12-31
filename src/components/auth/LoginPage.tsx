@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, Plane } from 'lucide-react';
+import { Mail, Lock, Plane, Eye, EyeOff } from 'lucide-react';
 import api from '../../api/axiosInstance';
 
 interface LoginPageProps {
@@ -12,6 +12,7 @@ export function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const performLogin = async (loginEmail: string, loginPassword: string) => {
     setError('');
@@ -87,12 +88,23 @@ export function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProps) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
