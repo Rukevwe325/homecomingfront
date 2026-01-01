@@ -19,9 +19,16 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
 
-  // Filter Dropdown State
-  const [filterType, setFilterType] = useState<'all' | 'trip' | 'request'>('all');
-  const [selectedFilterId, setSelectedFilterId] = useState<string>('');
+  // Consolidate filter state to avoid race conditions
+  const [filterState, setFilterState] = useState<{
+    type: 'all' | 'trip' | 'request';
+    id: string;
+  }>(() => {
+    if (initialFilters?.tripId) return { type: 'trip', id: initialFilters.tripId };
+    if (initialFilters?.itemRequestId) return { type: 'request', id: initialFilters.itemRequestId };
+    return { type: 'all', id: '' };
+  });
+
   const [userTrips, setUserTrips] = useState<any[]>([]);
   const [userRequests, setUserRequests] = useState<any[]>([]);
 
@@ -34,29 +41,28 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
 
     // Priority: initialFilters prop > URL params > default
     if (initialFilters?.tripId) {
-      setFilterType('trip');
-      setSelectedFilterId(initialFilters.tripId);
+      setFilterState({ type: 'trip', id: initialFilters.tripId });
     } else if (initialFilters?.itemRequestId) {
-      setFilterType('request');
-      setSelectedFilterId(initialFilters.itemRequestId);
+      setFilterState({ type: 'request', id: initialFilters.itemRequestId });
+    } else if (initialFilters === null) {
+      // RESET: If navigating from sidebar, clear the filters
+      setFilterState({ type: 'all', id: '' });
     } else {
       const params = new URLSearchParams(window.location.search);
       const tripId = params.get('tripId');
       const itemRequestId = params.get('itemRequestId');
 
       if (tripId) {
-        setFilterType('trip');
-        setSelectedFilterId(tripId);
+        setFilterState({ type: 'trip', id: tripId });
       } else if (itemRequestId) {
-        setFilterType('request');
-        setSelectedFilterId(itemRequestId);
+        setFilterState({ type: 'request', id: itemRequestId });
       }
     }
   }, [initialFilters]); // Re-run if initialFilters changes
 
   useEffect(() => {
     loadMatches();
-  }, [user, currentPage, filter, filterType, selectedFilterId]);
+  }, [user, currentPage, filter, filterState]);
 
   const fetchUserOptions = async () => {
     try {
@@ -75,10 +81,10 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
       const statusParam = filter !== 'all' ? `&status=${filter}` : '';
 
       let extraParams = '';
-      if (filterType === 'trip' && selectedFilterId) {
-        extraParams += `&tripId=${selectedFilterId}`;
-      } else if (filterType === 'request' && selectedFilterId) {
-        extraParams += `&itemRequestId=${selectedFilterId}`;
+      if (filterState.type === 'trip' && filterState.id) {
+        extraParams += `&tripId=${filterState.id}&trip_id=${filterState.id}`; // Support both camel and snake
+      } else if (filterState.type === 'request' && filterState.id) {
+        extraParams += `&itemRequestId=${filterState.id}&item_request_id=${filterState.id}`;
       }
 
       const response = await api.get(`/matches?page=${currentPage}&limit=10${statusParam}${extraParams}`);
@@ -108,11 +114,17 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: any) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+      });
+    } catch {
+      return 'N/A';
+    }
   };
 
   /**
@@ -157,10 +169,9 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
         <div className="flex gap-2">
           <select
             className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
-            value={filterType}
+            value={filterState.type}
             onChange={(e) => {
-              setFilterType(e.target.value as any);
-              setSelectedFilterId('');
+              setFilterState({ type: e.target.value as any, id: '' });
               setCurrentPage(1);
             }}
           >
@@ -169,37 +180,37 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
             <option value="request">By Request</option>
           </select>
 
-          {filterType === 'trip' && (
+          {filterState.type === 'trip' && (
             <select
               className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 max-w-xs"
-              value={selectedFilterId}
+              value={filterState.id}
               onChange={(e) => {
-                setSelectedFilterId(e.target.value);
+                setFilterState(prev => ({ ...prev, id: e.target.value }));
                 setCurrentPage(1);
               }}
             >
               <option value="">Select a Trip...</option>
               {userTrips.map(trip => (
                 <option key={trip.id} value={trip.id}>
-                  {trip.fromCity} → {trip.toCity} ({formatDate(trip.departureDate)})
+                  {trip.fromCity} → {trip.toCity} ({formatDate(trip.departureDate || trip.departure_date)})
                 </option>
               ))}
             </select>
           )}
 
-          {filterType === 'request' && (
+          {filterState.type === 'request' && (
             <select
               className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 max-w-xs"
-              value={selectedFilterId}
+              value={filterState.id}
               onChange={(e) => {
-                setSelectedFilterId(e.target.value);
+                setFilterState(prev => ({ ...prev, id: e.target.value }));
                 setCurrentPage(1);
               }}
             >
               <option value="">Select a Request...</option>
               {userRequests.map(req => (
                 <option key={req.id} value={req.id}>
-                  {req.itemName} ({req.fromCity} → {req.toCity})
+                  {req.itemName} ({req.fromCity} → {req.toCity} - {formatDate(req.desiredDeliveryDate || req.deliveryDate || req.desired_delivery_date)})
                 </option>
               ))}
             </select>
@@ -237,8 +248,7 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
           <button
             onClick={() => {
               setFilter('all');
-              setFilterType('all');
-              setSelectedFilterId('');
+              setFilterState({ type: 'all', id: '' });
               // Optionally reload or navigate
             }}
             className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -260,7 +270,22 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
                   <div className="space-y-1">
                     <div className="text-teal-600 text-[10px] font-bold uppercase tracking-wider">Item</div>
                     <div className="font-bold text-gray-900">{match.itemRequest?.itemName}</div>
-                    <div className="text-xs text-gray-500">{match.itemRequest?.weightKg} kg</div>
+                    <div className="text-xs text-gray-500">
+                      {parseFloat(match.agreedWeightKg || match.itemRequest?.weightKg || match.item_request?.weightKg || match.weightKg || '0').toFixed(1)} kg • Needs: {formatDate(
+                        match.itemRequest?.desiredDeliveryDate ||
+                        match.itemRequest?.deliveryDate ||
+                        match.itemRequest?.desired_delivery_date ||
+                        match.itemRequest?.delivery_date ||
+                        match.item_request?.desiredDeliveryDate ||
+                        match.item_request?.deliveryDate ||
+                        match.item_request?.desired_delivery_date ||
+                        match.item_request?.delivery_date ||
+                        match.desiredDeliveryDate ||
+                        match.deliveryDate ||
+                        match.desired_delivery_date ||
+                        match.delivery_date
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -274,21 +299,8 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
                   <div className="flex gap-2">
                     {shouldShowActions(match) && (
                       <>
-                        <button
-                          disabled={updatingId === match.id.toString()}
-                          onClick={() => handleStatusUpdate(match.id.toString(), 'rejected')}
-                          className="flex-1 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          disabled={updatingId === match.id.toString()}
-                          onClick={() => handleStatusUpdate(match.id.toString(), 'accepted')}
-                          className="flex-[2] py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-                        >
-                          {updatingId === match.id.toString() ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                          <span>Accept</span>
-                        </button>
+
+
                       </>
                     )}
                   </div>
@@ -329,24 +341,14 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
             </button>
 
             <div className="overflow-y-auto max-h-[90vh]">
-              <MatchDetailView match={selectedMatch} />
-
-              {shouldShowActions(selectedMatch) && (
-                <div className="p-6 pt-0 flex gap-4 bg-white">
-                  <button
-                    onClick={() => handleStatusUpdate(selectedMatch.id.toString(), 'rejected')}
-                    className="flex-1 py-3 border-2 border-red-100 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-all"
-                  >
-                    Decline Match
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedMatch.id.toString(), 'accepted')}
-                    className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
-                  >
-                    Confirm & Accept
-                  </button>
-                </div>
-              )}
+              <MatchDetailView
+                match={selectedMatch}
+                user={user}
+                onStatusUpdate={() => {
+                  loadMatches();
+                  setSelectedMatch(null);
+                }}
+              />
             </div>
           </div>
         </div>

@@ -64,12 +64,13 @@ export function PostTrip({ user, onNavigate, onShowFlash }: PostTripProps) {
         notes: '',
       });
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error posting trip:", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to post trip. Please try again.";
       if (onShowFlash) {
-        onShowFlash("Failed to post trip. Please try again.", "error");
+        onShowFlash(errorMessage, "error");
       } else {
-        alert("Failed to post trip. Please try again.");
+        alert(errorMessage);
       }
     } finally {
       setLoading(false);

@@ -6,11 +6,9 @@ import api from '../../api/axiosInstance';
 interface MyRequestsProps {
   user: User;
   onNavigate?: (view: string, params?: any) => void;
-  flashMessage?: string;
-  onClearFlash?: () => void;
 }
 
-export function MyRequests({ user, onNavigate, flashMessage, onClearFlash }: MyRequestsProps) {
+export function MyRequests({ user, onNavigate }: MyRequestsProps) {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -64,20 +62,6 @@ export function MyRequests({ user, onNavigate, flashMessage, onClearFlash }: MyR
         <p className="text-gray-600">View and manage your shipment requests</p>
       </div>
 
-      {flashMessage && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span className="text-green-800 font-medium">{flashMessage}</span>
-          </div>
-          <button
-            onClick={onClearFlash}
-            className="text-green-600 hover:text-green-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      )}
 
       {requests.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">

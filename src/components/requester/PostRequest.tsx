@@ -66,12 +66,13 @@ export function PostRequest({ user, onNavigate, onShowFlash }: PostRequestProps)
         notes: '',
       });
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error posting request:", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to submit request. Please try again.";
       if (onShowFlash) {
-        onShowFlash("Failed to submit request. Please try again.", "error");
+        onShowFlash(errorMessage, "error");
       } else {
-        alert("Failed to submit request. Please try again.");
+        alert(errorMessage);
       }
     } finally {
       setLoading(false);

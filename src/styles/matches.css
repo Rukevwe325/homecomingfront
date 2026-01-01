@@ -1,0 +1,331 @@
+/* matches.css - Custom styles for matches components */
+
+/* Match Detail View Container */
+.match-detail-container {
+  width: 100%;
+  background-color: var(--color-white);
+}
+
+/* Main Content Area */
+.match-detail-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Section Cards */
+.match-section-card {
+  position: relative;
+}
+
+.match-section-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.match-section-icon--blue {
+  background-color: var(--color-blue-50);
+  color: var(--color-blue-600);
+}
+
+.match-section-icon--teal {
+  background-color: var(--color-teal-50);
+  color: var(--color-teal-600);
+}
+
+.match-section-title {
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  line-height: 1.5;
+}
+
+.match-section-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+/* Detail Grid */
+.match-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-left: 4rem;
+}
+
+@media (min-width: 768px) {
+  .match-detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.match-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--color-gray-50);
+  padding: 0.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--color-gray-100);
+}
+
+.match-detail-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.match-detail-icon--blue {
+  color: var(--color-blue-500);
+}
+
+.match-detail-icon--orange {
+  color: var(--color-orange-500);
+}
+
+.match-detail-icon--teal {
+  color: var(--color-teal-500);
+}
+
+.match-detail-icon--gray {
+  color: var(--color-gray-400);
+}
+
+.match-detail-label {
+  font-size: 0.625rem;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-medium);
+}
+
+.match-detail-value {
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  line-height: 1.5;
+}
+
+/* Route Display */
+.match-route-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.match-route-arrow {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-gray-400);
+}
+
+/* Notes Section */
+.match-notes {
+  margin-top: 0.75rem;
+  margin-left: 4rem;
+  padding: 0.75rem;
+  background-color: rgba(240, 253, 250, 0.3);
+  border: 1px solid var(--color-teal-100);
+  border-radius: 0.75rem;
+}
+
+.match-notes-text {
+  font-size: 0.875rem;
+  color: var(--color-teal-800);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Status Card */
+.match-status-card {
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid;
+}
+
+.match-status-card--accepted {
+  background: linear-gradient(135deg, var(--color-green-50), var(--color-teal-50));
+  border-color: var(--color-teal-100);
+}
+
+.match-status-card--rejected {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+}
+
+.match-status-card--pending {
+  background: linear-gradient(135deg, var(--color-blue-50), var(--color-indigo-50));
+  border-color: var(--color-blue-100);
+}
+
+.match-status-card--action {
+  background: linear-gradient(135deg, var(--color-orange-50), var(--color-amber-50));
+  border-color: var(--color-orange-100);
+}
+
+/* Status Icon Container */
+.match-status-icon-container {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.match-status-icon-container--accepted {
+  color: var(--color-teal-600);
+}
+
+.match-status-icon-container--rejected {
+  color: var(--color-red-500);
+}
+
+.match-status-icon-container--pending {
+  color: var(--color-blue-600);
+}
+
+.match-status-icon-container--action {
+  color: var(--color-orange-600);
+}
+
+.match-status-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Status Info */
+.match-status-label {
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+}
+
+.match-status-id {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+}
+
+/* Action Buttons */
+.match-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .match-actions-container {
+    width: auto;
+  }
+}
+
+.match-button {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  border-radius: 0.625rem;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: 1px solid;
+  line-height: 1.5;
+}
+
+.match-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.match-button--secondary {
+  background-color: var(--color-red-500);
+  border-color: var(--color-red-500);
+  color: var(--color-white);
+}
+
+.match-button--secondary:hover:not(:disabled) {
+  background-color: var(--color-red-700);
+  border-color: var(--color-red-700);
+}
+
+.match-button--primary {
+  background-color: var(--color-green-600);
+  border-color: var(--color-green-600);
+  color: var(--color-white);
+}
+
+.match-button--primary:hover:not(:disabled) {
+  background-color: var(--color-green-700);
+  border-color: var(--color-green-700);
+}
+
+.match-button--teal {
+  background-color: var(--color-teal-600);
+  border-color: var(--color-teal-600);
+  color: var(--color-white);
+}
+
+.match-button--teal:hover:not(:disabled) {
+  background-color: var(--color-teal-700);
+  border-color: var(--color-teal-700);
+}
+
+/* Status Message */
+.match-status-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.match-status-text {
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.match-status-text--rejected {
+  color: var(--color-red-400);
+}
+
+.match-status-text--waiting {
+  color: var(--color-blue-600);
+}
+
+/* Loading Spinner */
+.match-loading-spinner {
+  width: 1rem;
+  height: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Divider */
+.match-divider {
+  border-top: 1px solid var(--color-gray-100);
+  margin: 0;
+}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { User } from '../../App';
 import {
   Package,
   Plane,
@@ -7,20 +8,29 @@ import {
   Clock,
   ShieldCheck,
   ArrowRight,
-  UserCircle2,
   Check,
   X,
-  Loader2
+  Loader2,
+  AlertCircle,
+  MessageCircle
 } from 'lucide-react';
 import api from '../../api/axiosInstance';
+import '../../styles/matches.css'; // Import the custom CSS
 
 interface MatchDetailViewProps {
   match: any;
+  user: User;
+  onStatusUpdate?: () => void;
 }
 
-export function MatchDetailView({ match }: MatchDetailViewProps) {
-  const [updating, setUpdating] = useState(false);
+export function MatchDetailView({ match, user, onStatusUpdate }: MatchDetailViewProps) {
   const [localMatch, setLocalMatch] = useState(match);
+  const [updating, setUpdating] = useState(false);
+
+  // Sync state with props
+  useEffect(() => {
+    setLocalMatch(match);
+  }, [match]);
 
   if (!localMatch) return null;
 
@@ -30,282 +40,237 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       const response = await api.patch(`/matches/${localMatch.id}/status`, {
         status: newStatus
       });
-      // Update local state with response
       setLocalMatch(response.data);
+      if (onStatusUpdate) onStatusUpdate();
     } catch (error: any) {
       console.error("Error updating match status:", error);
-      console.error("Error details:", error.response?.data);
     } finally {
       setUpdating(false);
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: any) => {
     if (!dateString) return 'TBD';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'TBD';
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return 'TBD';
+    }
   };
 
+  const status = localMatch.status?.toLowerCase();
+  const isAccepted = status === 'accepted';
+  const isRejected = status === 'rejected';
+
+  // Determine if action is needed from current user
+  const needsAction = () => {
+    if (isAccepted || isRejected) return false;
+    if (user.role === 'carrier' && status === 'carrier_accepted') return false;
+    if (user.role === 'requester' && status === 'requester_accepted') return false;
+    return true;
+  };
+
+  const getStatusConfig = () => {
+    if (isAccepted) return {
+      label: localMatch.displayStatus || 'Confirmed',
+      type: 'accepted',
+      icon: ShieldCheck
+    };
+    if (isRejected) return {
+      label: localMatch.displayStatus || 'Rejected',
+      type: 'rejected',
+      icon: X
+    };
+    if (needsAction()) return {
+      label: localMatch.displayStatus || 'Action Required',
+      type: 'action',
+      icon: AlertCircle
+    };
+    return {
+      label: localMatch.displayStatus || 'Waiting',
+      type: 'pending',
+      icon: Clock
+    };
+  };
+
+  const config = getStatusConfig();
+
   return (
-    <div className="max-w-6xl mx-auto px-4">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Match Details</h1>
-        <p className="text-gray-600">Review the details for this matched shipment</p>
-      </div>
-
-      {/* Status Section */}
-      <div className="mb-6">
-        {localMatch.status?.toLowerCase() === 'pending' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md bg-yellow-100 text-yellow-700 border-yellow-300">
-                Pending
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-yellow-800 font-medium mb-3">
-                  {localMatch.displayStatus || 'This match is waiting for confirmation from both parties.'}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleStatusUpdate('rejected')}
-                    disabled={updating}
-                    className="flex items-center gap-2 px-4 py-2 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-                    Decline
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate('accepted')}
-                    disabled={updating}
-                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    Accept Match
-                  </button>
-                </div>
-              </div>
+    <div className="match-detail-container">
+      <div className="match-detail-content">
+        {/* Traveler Section */}
+        <div className="match-section-card">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="match-section-icon match-section-icon--blue">
+              <Plane className="w-6 h-6" />
             </div>
-          </div>
-        )}
-
-        {localMatch.status?.toLowerCase() === 'carrier_accepted' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md bg-blue-100 text-blue-700 border-blue-300">
-                Carrier Accepted
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-blue-800 font-medium mb-3">
-                  {localMatch.displayStatus || 'The carrier has accepted this match. Waiting for requester confirmation.'}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleStatusUpdate('rejected')}
-                    disabled={updating}
-                    className="flex items-center gap-2 px-4 py-2 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-                    Decline
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate('accepted')}
-                    disabled={updating}
-                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    Accept Match
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {localMatch.status?.toLowerCase() === 'requester_accepted' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md bg-blue-100 text-blue-700 border-blue-300">
-                Requester Accepted
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-blue-800 font-medium mb-3">
-                  {localMatch.displayStatus || 'The requester has accepted this match. Waiting for carrier confirmation.'}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleStatusUpdate('rejected')}
-                    disabled={updating}
-                    className="flex items-center gap-2 px-4 py-2 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-                    Decline
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate('accepted')}
-                    disabled={updating}
-                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    Accept Match
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {localMatch.status?.toLowerCase() === 'accepted' && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md bg-green-100 text-green-700 border-green-300">
-                Accepted
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-green-800 font-medium">
-                  {localMatch.displayStatus || 'Both parties have confirmed this match. You can now coordinate the shipment details.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {localMatch.status?.toLowerCase() === 'rejected' && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="px-3 py-1 text-center text-[10px] font-black uppercase tracking-widest border rounded-md bg-red-100 text-red-700 border-red-300">
-                Rejected
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-red-800 font-medium">
-                  {localMatch.displayStatus || 'This match has been declined by one or both parties.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Main Content Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-
-        {/* Route Section */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-start gap-4 mb-6">
-
             <div className="flex-1">
-              <div className="flex items-center gap-3 flex-wrap mb-2">
-                <div className="text-lg font-bold text-gray-900">
-                  {localMatch.trip?.fromCity || localMatch.itemRequest?.fromCity}
+              <div className="match-route-display">
+                <div className="match-section-title">
+                  {localMatch.trip?.fromCity}{localMatch.trip?.fromCountry ? `, ${localMatch.trip.fromCountry}` : ''}
                 </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-                <div className="text-lg font-bold text-gray-900">
-                  {localMatch.trip?.toCity || localMatch.itemRequest?.toCity}
+                <ArrowRight className="match-route-arrow" />
+                <div className="match-section-title">
+                  {localMatch.trip?.toCity}{localMatch.trip?.toCountry ? `, ${localMatch.trip.toCountry}` : ''}
                 </div>
               </div>
-              <p className="text-sm text-gray-500">
-                Shipment Route
+              <p className="match-section-subtitle">Traveler Route</p>
+            </div>
+          </div>
+
+          <div className="match-detail-grid">
+            <div className="match-detail-item">
+              <Calendar className="match-detail-icon match-detail-icon--blue" />
+              <div>
+                <p className="match-detail-label">Departure Date</p>
+                <p className="match-detail-value">{formatDate(localMatch.trip?.departureDate)}</p>
+              </div>
+            </div>
+            <div className="match-detail-item">
+              <Weight className="match-detail-icon match-detail-icon--orange" />
+              <div>
+                <p className="match-detail-label">Available Space</p>
+                <p className="match-detail-value">
+                  {localMatch.trip?.availableLuggageSpace
+                    ? `${parseFloat(localMatch.trip.availableLuggageSpace).toFixed(1)} kg`
+                    : (localMatch.agreedWeightKg ? `${parseFloat(localMatch.agreedWeightKg).toFixed(1)} kg` : 'N/A')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <hr className="match-divider" />
+
+        {/* Package Section */}
+        <div className="match-section-card">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="match-section-icon match-section-icon--teal">
+              <Package className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <div className="match-section-title">
+                {localMatch.itemRequest?.itemName}
+              </div>
+              <p className="match-section-subtitle">Package Details</p>
+            </div>
+          </div>
+
+          <div className="match-detail-grid">
+            <div className="match-detail-item">
+              <Weight className="match-detail-icon match-detail-icon--teal" />
+              <div>
+                <p className="match-detail-label">{localMatch.agreedWeightKg ? 'Agreed Weight' : 'Item Weight'}</p>
+                <p className="match-detail-value">
+                  {parseFloat(localMatch.agreedWeightKg || localMatch.itemRequest?.weightKg || '0').toFixed(1)} kg
+                </p>
+              </div>
+            </div>
+            <div className="match-detail-item">
+              <Clock className="match-detail-icon match-detail-icon--gray" />
+              <div>
+                <p className="match-detail-label">Needed By</p>
+                <p className="match-detail-value">
+                  {formatDate(
+                    localMatch.itemRequest?.desiredDeliveryDate ||
+                    localMatch.itemRequest?.deliveryDate ||
+                    localMatch.itemRequest?.desired_delivery_date ||
+                    localMatch.itemRequest?.delivery_date ||
+                    localMatch.item_request?.desiredDeliveryDate ||
+                    localMatch.item_request?.deliveryDate ||
+                    localMatch.item_request?.desired_delivery_date ||
+                    localMatch.item_request?.delivery_date ||
+                    localMatch.desiredDeliveryDate ||
+                    localMatch.deliveryDate ||
+                    localMatch.desired_delivery_date ||
+                    localMatch.delivery_date ||
+                    localMatch.itemRequest?.departureDate ||
+                    localMatch.departureDate
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {localMatch.itemRequest?.notes && (
+            <div className="match-notes">
+              <p className="match-notes-text">
+                "{localMatch.itemRequest.notes}"
               </p>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Details Grid */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            {/* Traveler Schedule */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+        {/* Status & Actions Section */}
+        <div className="pt-2">
+          <div className={`match-status-card match-status-card--${config.type}`}>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`match-status-icon-container match-status-icon-container--${config.type}`}>
+                  <config.icon className="match-status-icon" />
                 </div>
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                  Traveler Schedule
-                </h3>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-gray-700 bg-gray-50 p-3 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Departure Date</p>
-                    <p className="font-medium">{formatDate(localMatch.trip?.departureDate)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-gray-700 bg-gray-50 p-3 rounded-lg">
-                  <Clock className="w-5 h-5 text-teal-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Booking Reference</p>
-                    <p className="font-medium font-mono text-sm">TRP-{localMatch.tripId}</p>
-                  </div>
+                <div>
+                  <h4 className="match-status-label">{config.label}</h4>
+                  <p className="match-status-id">Match ID: {localMatch.id}</p>
                 </div>
               </div>
-            </div>
 
-            {/* Item Details */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center">
-                  <Package className="w-5 h-5 text-teal-600" />
-                </div>
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                  Item Details
-                </h3>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-gray-700 bg-gray-50 p-3 rounded-lg">
-                  <Package className="w-5 h-5 text-teal-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Item Name</p>
-                    <p className="font-medium">{localMatch.itemRequest?.itemName}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-gray-700 bg-gray-50 p-3 rounded-lg">
-                  <Weight className="w-5 h-5 text-orange-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Agreed Weight</p>
-                    <p className="font-medium">
-                      {parseFloat(localMatch.agreedWeightKg || localMatch.itemRequest?.weightKg).toFixed(1)} kg
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Action Footer for Accepted Matches */}
-        {localMatch.status === 'accepted' && (
-          <div className="p-6 pt-0">
-            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <UserCircle2 className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-base font-bold text-gray-900 mb-1">
-                    Ready to Connect
-                  </h4>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Both parties have confirmed this match. You can now coordinate pickup details.
-                  </p>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                    Message Shipping Partner
+              {needsAction() ? (
+                <div className="match-actions-container">
+                  <button
+                    onClick={() => handleStatusUpdate('rejected')}
+                    disabled={updating}
+                    className="match-button match-button--secondary flex-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Decline
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate('accepted')}
+                    disabled={updating}
+                    className="match-button match-button--primary flex-[2]"
+                  >
+                    {updating ? (
+                      <Loader2 className="match-loading-spinner" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                    Confirm Match
                   </button>
                 </div>
-              </div>
+              ) : (
+                <div className="text-right">
+                  {isAccepted ? (
+                    <button className="match-button match-button--teal">
+                      <MessageCircle className="w-4 h-4" />
+                      Message Partner
+                    </button>
+                  ) : isRejected ? (
+                    <div className="match-status-message">
+                      <span className="match-status-text match-status-text--rejected">
+                        Match Cancelled
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="match-status-message">
+                      <Loader2 className="match-loading-spinner" />
+                      <span className="match-status-text match-status-text--waiting">
+                        Awaiting Partner
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        )}
-
+        </div>
       </div>
     </div>
   );

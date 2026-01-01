@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from '../../App';
 import { Sidebar } from './Sidebar';
 import { Home } from '../views/Home';
@@ -9,7 +9,7 @@ import { MyRequests } from '../requester/MyRequests';
 import { MatchesList } from '../matches/MatchesList';
 import { Settings } from '../views/Settings';
 import { NotificationsMenu } from './NotificationsMenu';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface DashboardProps {
   user: User;
@@ -21,6 +21,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   const [viewParams, setViewParams] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flashMessage, setFlashMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const flashMessageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (flashMessage) {
+      flashMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [flashMessage]);
 
   const handleShowFlash = (message: string, type: 'success' | 'error' = 'success') => {
     setFlashMessage({ message, type });
@@ -30,10 +37,10 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
   const handleNavigate = (view: string, params?: any) => {
     setCurrentView(view);
+    setSidebarOpen(false); // Close sidebar on mobile when navigating
     if (params) {
       setViewParams(params);
     } else {
-      // Clear params if navigating without any (unless we want persistence, but usually clearing is safer to avoid stale state)
       setViewParams(null);
     }
   };
@@ -49,8 +56,6 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           <MyTrips
             user={user}
             onNavigate={handleNavigate}
-            flashMessage={flashMessage?.message}
-            onClearFlash={() => setFlashMessage(null)}
           />
         );
       case 'post-request':
@@ -60,12 +65,16 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           <MyRequests
             user={user}
             onNavigate={handleNavigate}
-            flashMessage={flashMessage?.message}
-            onClearFlash={() => setFlashMessage(null)}
           />
         );
       case 'matches':
-        return <MatchesList user={user} initialFilters={viewParams} />;
+        return (
+          <MatchesList
+            key={viewParams?.tripId || viewParams?.itemRequestId || 'all'}
+            user={user}
+            initialFilters={viewParams}
+          />
+        );
       case 'settings':
         return <Settings user={user} />;
       default:
@@ -82,7 +91,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         <Sidebar
           user={user}
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
           onLogout={onLogout}
           pendingMatchesCount={0}
         />
@@ -99,10 +108,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
             <Sidebar
               user={user}
               currentView={currentView}
-              onNavigate={(view) => {
-                setCurrentView(view);
-                setSidebarOpen(false);
-              }}
+              onNavigate={handleNavigate}
               onLogout={onLogout}
               pendingMatchesCount={0}
             />
@@ -133,6 +139,33 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          {flashMessage && (
+            <div
+              ref={flashMessageRef}
+              className={`mb-6 rounded-lg p-4 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-300 ${flashMessage.type === 'error'
+                ? 'bg-red-50 border border-red-200'
+                : 'bg-green-50 border border-green-200'
+                }`}>
+              <div className="flex items-center gap-3">
+                {flashMessage.type === 'error' ? (
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                ) : (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                )}
+                <span className={`font-medium ${flashMessage.type === 'error' ? 'text-red-800' : 'text-green-800'
+                  }`}>
+                  {flashMessage.message}
+                </span>
+              </div>
+              <button
+                onClick={() => setFlashMessage(null)}
+                className={`${flashMessage.type === 'error' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'
+                  } transition-colors`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          )}
           {renderView()}
         </div>
       </div>
