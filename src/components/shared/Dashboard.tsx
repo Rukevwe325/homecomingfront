@@ -8,6 +8,7 @@ import { PostRequest } from '../requester/PostRequest';
 import { MyRequests } from '../requester/MyRequests';
 import { MatchesList } from '../matches/MatchesList';
 import { Settings } from '../views/Settings';
+import { Messages } from '../views/Messages';
 import { NotificationsMenu } from './NotificationsMenu';
 import { Menu, X, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -73,10 +74,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
             key={viewParams?.tripId || viewParams?.itemRequestId || 'all'}
             user={user}
             initialFilters={viewParams}
+            onNavigate={handleNavigate}
           />
         );
       case 'settings':
         return <Settings user={user} />;
+      case 'messages':
+        return <Messages user={user} onNavigate={handleNavigate} initialMatchId={viewParams?.matchId} />;
       default:
         return <Home user={user} onNavigate={handleNavigate} />;
     }

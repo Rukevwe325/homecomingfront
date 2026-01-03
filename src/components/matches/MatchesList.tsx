@@ -10,9 +10,10 @@ interface MatchesListProps {
     tripId?: string;
     itemRequestId?: string;
   };
+  onNavigate: (view: string, params?: any) => void;
 }
 
-export function MatchesList({ user, initialFilters }: MatchesListProps) {
+export function MatchesList({ user, initialFilters, onNavigate }: MatchesListProps) {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -344,6 +345,7 @@ export function MatchesList({ user, initialFilters }: MatchesListProps) {
               <MatchDetailView
                 match={selectedMatch}
                 user={user}
+                onNavigate={onNavigate}
                 onStatusUpdate={() => {
                   loadMatches();
                   setSelectedMatch(null);

@@ -1,4 +1,4 @@
-import { Home, PlaneTakeoff, Package, Heart, Settings, LogOut, Plane, PackageCheck } from 'lucide-react';
+import { Home, PlaneTakeoff, Package, Heart, Settings, LogOut, Plane, PackageCheck, MessageSquare } from 'lucide-react';
 import { User } from '../../App';
 
 interface SidebarProps {
@@ -24,6 +24,7 @@ export function Sidebar({ user, currentView, onNavigate, onLogout, pendingMatche
     { id: 'post-request', icon: Package, label: 'Post Request' },
     { id: 'my-requests', icon: PackageCheck, label: 'My Requests' },
     { id: 'matches', icon: Heart, label: 'Matches', badge: pendingMatchesCount },
+    { id: 'messages', icon: MessageSquare, label: 'Messages' },
     { id: 'settings', icon: Settings as any, label: 'Settings' },
   ];
 

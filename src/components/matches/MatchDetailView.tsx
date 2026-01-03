@@ -21,9 +21,10 @@ interface MatchDetailViewProps {
   match: any;
   user: User;
   onStatusUpdate?: () => void;
+  onNavigate?: (view: string, params?: any) => void;
 }
 
-export function MatchDetailView({ match, user, onStatusUpdate }: MatchDetailViewProps) {
+export function MatchDetailView({ match, user, onStatusUpdate, onNavigate }: MatchDetailViewProps) {
   const [localMatch, setLocalMatch] = useState(match);
   const [updating, setUpdating] = useState(false);
 
@@ -248,7 +249,10 @@ export function MatchDetailView({ match, user, onStatusUpdate }: MatchDetailView
               ) : (
                 <div className="text-right">
                   {isAccepted ? (
-                    <button className="match-button match-button--teal">
+                    <button
+                      onClick={() => onNavigate && onNavigate('messages', { matchId: localMatch.id })}
+                      className="match-button match-button--teal"
+                    >
                       <MessageCircle className="w-4 h-4" />
                       Message Partner
                     </button>
