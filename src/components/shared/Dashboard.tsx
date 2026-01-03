@@ -142,7 +142,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         </header>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className={`flex-1 flex flex-col ${currentView === 'messages' ? 'overflow-hidden p-0 md:p-0' : 'overflow-y-auto p-4 md:p-8'}`}>
           {flashMessage && (
             <div
               ref={flashMessageRef}

@@ -143,9 +143,9 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
     const trip = history?.chatInfo.tripDetails;
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] lg:h-[calc(100vh-160px)] bg-gray-50 rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative">
-            {/* Sticky Header */}
-            <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 z-10 shadow-sm">
+        <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden relative">
+            {/* Header - Fixed to top via flex-shrink-0 */}
+            <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 z-10 shadow-sm flex-shrink-0">
                 <button
                     onClick={onBack}
                     className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -171,8 +171,8 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
                 </div>
             </header>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f0f2f5] custom-scrollbar">
+            {/* Messages Area - Only this part scrolls */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-[#f0f2f5] custom-scrollbar">
                 {history?.messages.map((msg, index) => {
                     const isMe = msg.senderId === user.id;
                     return (
@@ -182,8 +182,8 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
                         >
                             <div
                                 className={`max-w-[85%] lg:max-w-[70%] px-4 py-2.5 rounded-2xl shadow-sm text-sm relative group ${isMe
-                                        ? 'bg-[#d9fdd3] text-gray-900 rounded-tr-none'
-                                        : 'bg-white text-gray-900 rounded-tl-none border border-gray-100'
+                                    ? 'bg-[#d9fdd3] text-gray-900 rounded-tr-none'
+                                    : 'bg-white text-gray-900 rounded-tl-none border border-gray-100'
                                     }`}
                             >
                                 <div className="mb-1 leading-relaxed">{msg.content}</div>
@@ -197,8 +197,8 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Sticky Input Footer */}
-            <footer className="bg-[#f0f2f5] px-4 py-3 border-t border-gray-200 lg:px-8">
+            {/* Footer - Fixed to bottom via flex-shrink-0 */}
+            <footer className="bg-[#f0f2f5] px-4 py-3 border-t border-gray-200 lg:px-8 flex-shrink-0">
                 <form
                     onSubmit={handleSendMessage}
                     className="flex items-center gap-2 max-w-4xl mx-auto"
@@ -215,8 +215,8 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
                         type="submit"
                         disabled={!newMessage.trim() || sending}
                         className={`p-3 rounded-full transition-all shadow-md ${!newMessage.trim() || sending
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
                             }`}
                     >
                         {sending ? (
