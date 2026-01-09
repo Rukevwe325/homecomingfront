@@ -26,6 +26,9 @@ interface NotificationContextType {
     markAsRead: (id: number) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     refreshNotifications: () => Promise<void>;
+    // Real-time helpers
+    sendTyping: (matchId: number, isTyping: boolean) => void;
+    typingState: Record<number, boolean>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -35,6 +38,7 @@ export function NotificationProvider({ children, userId }: { children: ReactNode
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [typingState, setTypingState] = useState<Record<number, boolean>>({});
 
     // Initialize Socket and Fetch Initial Data
     useEffect(() => {
@@ -68,6 +72,21 @@ export function NotificationProvider({ children, userId }: { children: ReactNode
             }
 
             refreshNotifications(); // To get the new item in the list
+        });
+
+        // Message events (new chat messages pushed from backend)
+        newSocket.on('message_received', (data: any) => {
+            console.log('Message received via socket:', data);
+            // If this message should also create a notification, backend may emit notification_received too.
+            // Consumers that render open chat windows should subscribe to socket directly or via another context.
+            // For now, refresh notification list so inbox shows latest snippet.
+            refreshNotifications();
+        });
+
+        // Typing status events from other users
+        newSocket.on('typing_status', (data: { matchId: number; isTyping: boolean }) => {
+            console.log('Typing status received:', data);
+            setTypingState(prev => ({ ...prev, [data.matchId]: data.isTyping }));
         });
 
         setSocket(newSocket);
@@ -150,6 +169,20 @@ export function NotificationProvider({ children, userId }: { children: ReactNode
         }
     };
 
+    const sendTyping = (matchId: number, isTyping: boolean) => {
+        if (socket && socket.connected) {
+            socket.emit('typing', { matchId, isTyping });
+        } else {
+            // Fallback: try HTTP notify endpoint if socket is not connected
+            api.post('/messages/typing', { matchId, isTyping }).catch((err) => {
+                // ignore errors; best-effort
+                console.debug('Typing notify failed via HTTP:', err?.response?.data || err?.message || err);
+            });
+        }
+        // update local typing state optimistically for UI
+        setTypingState(prev => ({ ...prev, [matchId]: isTyping }));
+    };
+
     // Custom method to just update badge without clearing (if we needed it), but we rely on refreshNotifications.
 
     return (
@@ -157,6 +190,8 @@ export function NotificationProvider({ children, userId }: { children: ReactNode
             notifications,
             unreadCount,
             loading,
+            sendTyping,
+            typingState,
             markAsRead,
             markAllAsRead,
             refreshNotifications
@@ -166,10 +201,10 @@ export function NotificationProvider({ children, userId }: { children: ReactNode
     );
 }
 
-export const useNotifications = () => {
+export function useNotifications() {
     const context = useContext(NotificationContext);
     if (context === undefined) {
         throw new Error('useNotifications must be used within a NotificationProvider');
     }
     return context;
-};
+}

@@ -34,8 +34,8 @@ export function Home({ user, onNavigate }: HomeProps) {
           pendingMatches: matchesRes.data.count || 0,
           confirmedMatches: 0,
         });
-      } catch (error) {
-        console.error("Error fetching dashboard counts:", error);
+      } catch (error: any) {
+        console.error("Error fetching dashboard counts:", error?.response?.data || error?.message || error);
       } finally {
         setLoading(false);
       }

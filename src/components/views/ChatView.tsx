@@ -24,6 +24,8 @@ interface ChatHistory {
     chatInfo: {
         matchId: number;
         status: string;
+        canSendMessage: boolean;
+        isLocked: boolean;
         otherParty: {
             id: string;
             firstName: string;
@@ -98,9 +100,13 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
                 });
             }
         } catch (err: any) {
-            console.error('Error sending message:', err);
-            // Re-set input on failure? Or just show error
-            alert('Failed to send message.');
+            if (err.response?.status === 403) {
+                alert('Action failed: This conversation has been closed.');
+                fetchHistory(); // Refresh to lock UI
+            } else {
+                console.error('Error sending message:', err);
+                alert('Failed to send message.');
+            }
         } finally {
             setSending(false);
         }
@@ -199,33 +205,42 @@ export function ChatView({ user, matchId, onBack }: ChatViewProps) {
 
             {/* Footer - Fixed to bottom via flex-shrink-0 */}
             <footer className="bg-[#f0f2f5] px-4 py-3 border-t border-gray-200 lg:px-8 flex-shrink-0">
-                <form
-                    onSubmit={handleSendMessage}
-                    className="flex items-center gap-2 max-w-4xl mx-auto"
-                >
-                    <input
-                        type="text"
-                        placeholder="Type a message..."
-                        className="flex-1 bg-white border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm placeholder:text-gray-400"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        disabled={sending}
-                    />
-                    <button
-                        type="submit"
-                        disabled={!newMessage.trim() || sending}
-                        className={`p-3 rounded-full transition-all shadow-md ${!newMessage.trim() || sending
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
-                            }`}
+                {history?.chatInfo.canSendMessage ? (
+                    <form
+                        onSubmit={handleSendMessage}
+                        className="flex items-center gap-2 max-w-4xl mx-auto"
                     >
-                        {sending ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                            <Send className="w-5 h-5 fill-current" />
-                        )}
-                    </button>
-                </form>
+                        <input
+                            type="text"
+                            placeholder="Type a message..."
+                            className="flex-1 bg-white border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm placeholder:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            disabled={sending}
+                        />
+                        <button
+                            type="submit"
+                            disabled={!newMessage.trim() || sending}
+                            className={`p-3 rounded-full transition-all shadow-md ${!newMessage.trim() || sending
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+                                }`}
+                        >
+                            {sending ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <Send className="w-5 h-5 fill-current" />
+                            )}
+                        </button>
+                    </form>
+                ) : (
+                    <div className="max-w-4xl mx-auto px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl flex items-center gap-3 text-gray-600 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                        <p className="text-sm font-medium">
+                            This chat is read-only because the match is <span className="font-bold underline tracking-tight">{history?.chatInfo.status}</span>.
+                        </p>
+                    </div>
+                )}
             </footer>
         </div>
     );
